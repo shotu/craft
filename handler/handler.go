@@ -64,18 +64,14 @@ func RollDice(c echo.Context) error {
 
 	rolledDiceNumber := board.Dice.RollDice()
 
-	err := board.UpdatePlayerPostion(playerID, rolledDiceNumber)
+	snakes, ladders, err := board.UpdatePlayerPostion(playerID, rolledDiceNumber)
 
 	if err != nil {
 		fmt.Println("error in rolling dice", err)
-		return c.JSON(http.StatusBadRequest, board)
+		return c.JSON(http.StatusBadRequest, board, snakes, ladders)
 
 	} else {
 		fmt.Println("Updated board is", board)
-		return c.JSON(http.StatusOK, board)
+		return c.JSON(http.StatusOK, board, snakes, ladders)
 	}
 }
-
-// func updatePlayerPostion(board *board.Board, playerID int, rolledDiceNumber int) error {
-
-// }

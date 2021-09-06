@@ -1,6 +1,9 @@
 package board
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 type Board interface {
 	NewBoard()
@@ -41,10 +44,14 @@ func NewBoard(dice Dice, snakes Snakes, ladders Ladders, players []*Player, id i
 	return boardIns
 }
 
-func (b *BoardImpl) UpdatePlayerPostion(playerId int, newPos int) error {
+func (b *BoardImpl) UpdatePlayerPostion(playerId int, newPos int) ([][]int, [][]int, error) {
 	// board := boards[boardID]
 
 	players := b.Players
+
+	snakes := [][]int{}
+	ladders := [][]int{}
+
 	// players := boards[boardID].Players
 	for _, player := range players {
 		fmt.Println("pos ", player.CurrentPosition)
@@ -56,38 +63,50 @@ func (b *BoardImpl) UpdatePlayerPostion(playerId int, newPos int) error {
 			newPos := player.CurrentPosition + newPos
 			// will not update if new postion > 100
 
-			fmt.Println("updatePlayerPostion.... new pos....", newPos)
 			if newPos <= 100 {
+				fmt.Println("update Player Postion.... new pos....", newPos)
 				player.CurrentPosition = newPos
 			}
 
-			var isSnake bool
-			var isLadder bool
+			isSnake := true
+			isLadder := true
+			fmt.Println("isSnake", isSnake)
+			fmt.Println("isLadder", isLadder)
 
-			for isSnake && isLadder {
+			for isSnake || isLadder {
 
-				fmt.Println("checking if snake or ladder .... new pos....", newPos)
-				snakeStart, isSnake := b.Snakes.SnakesMap[player.CurrentPosition]
+				fmt.Println("Intial is snake is ladder ", isSnake, isLadder)
+
+				snakeEnd, isSnk := b.Snakes.SnakesMap[player.CurrentPosition]
+				isSnake = isSnk
+				fmt.Println("is snake:", isSnake)
 
 				if isSnake {
 					fmt.Println("Bitten by snake")
-					player.CurrentPosition = snakeStart
+					snakes = append(snakes, []int{player.CurrentPosition, snakeEnd})
+					player.CurrentPosition = snakeEnd
 				}
 
-				ladderEnd, isLadder := b.Ladders.LaddersMap[player.CurrentPosition]
+				time.Sleep(5 * time.Second)
 
+				fmt.Println(" player.  CurrentPosition", player.CurrentPosition)
+
+				ladderEnd, isLad := b.Ladders.LaddersMap[player.CurrentPosition]
+
+				fmt.Println("is isLadder  :", isLadder)
+				isLadder = isLad
 				if isLadder {
+
+					ladders = append(ladders, []int{player.CurrentPosition, ladderEnd})
 					fmt.Println("got the ladder ")
 					player.CurrentPosition = ladderEnd
 				}
 			}
-
 			break
 		}
-
 	}
 
 	fmt.Println("Completes update")
 
-	return nil
+	return snakes, ladders, nil
 }
