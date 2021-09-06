@@ -1,0 +1,37 @@
+Multiuser snake and ladder game: rest apis
+services developed should be able to scale horizonatally 
+deploy on kubernetes and optimize based on load [autoscale services based on load]
+
+
+
+REST APIs list
+
+// create new game 
+   initialize the game and store in db, refer by id created by, 
+   ladders[start, end], snakes:[start, end]
+
+get board by id: 
+
+// join the game / 
+// add people to game 
+  [playerid, gameId]
+  [playerid, gameId]
+  [playerid, gameId]
+
+
+initialize player:
+  assign the initial place 
+
+
+roll the dice, 
+   based on output-> 
+   move the player to new postion, if new postion has snake or ladder, go to that postion, 
+
+if any move reaches the 100 declare the winner: 
+
+
+
+
+
+
+

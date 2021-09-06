@@ -1,0 +1,12 @@
+{
+    "gopls": {
+        "go.useLanguageServer": true
+    },
+    "go.alternateTools": {
+        "go": "/snap/go/current/bin/go"
+    },
+    "go.useCodeSnippetsOnFunctionSuggestWithoutType": true,
+    "go.useCodeSnippetsOnFunctionSuggest": true,
+    "go.inferGopath": false,
+    "go.gopath": "/home/atri/go"
+}
