@@ -17,13 +17,14 @@ import (
 // 	Ladders [][]int `json:"ladders"`
 // }
 
+// This will beahave as our db
 var (
 	boards = map[int]*board.BoardImpl{}
 )
 
 func CreateBoard(c echo.Context) error {
 
-	players := []board.Player{}
+	players := []*board.Player{}
 
 	// fmt.Println("c params", c.Param("players"))
 
@@ -49,3 +50,32 @@ func GetBoard(c echo.Context) error {
 	board := boards[id]
 	return c.JSON(http.StatusOK, board)
 }
+
+func RollDice(c echo.Context) error {
+
+	fmt.Println("rolling the dice")
+	boardID, _ := strconv.Atoi(c.Param("board_id"))
+	playerID, _ := strconv.Atoi(c.Param("id"))
+
+	//TODO
+
+	board := boards[boardID]
+	// fmt.Println(" board player.....................", board.Players.id)
+
+	rolledDiceNumber := board.Dice.RollDice()
+
+	err := board.UpdatePlayerPostion(playerID, rolledDiceNumber)
+
+	if err != nil {
+		fmt.Println("error in rolling dice", err)
+		return c.JSON(http.StatusBadRequest, board)
+
+	} else {
+		fmt.Println("Updated board is", board)
+		return c.JSON(http.StatusOK, board)
+	}
+}
+
+// func updatePlayerPostion(board *board.Board, playerID int, rolledDiceNumber int) error {
+
+// }

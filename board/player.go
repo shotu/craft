@@ -1,20 +1,20 @@
 package board
 
 type Player struct {
-	currentPosition int
+	CurrentPosition int
 	ID              int
 }
 
 func (p *Player) SetCurrPosition(position int) {
-	p.currentPosition = position
+	p.CurrentPosition = position
 }
 
 func (p *Player) GetPos() int {
-	return p.currentPosition
+	return p.CurrentPosition
 }
 
-func NewPlayer(id int) Player {
+func NewPlayer(id int) *Player {
 
-	player := Player{currentPosition: 0, ID: id}
+	player := &Player{CurrentPosition: 0, ID: id}
 	return player
 }

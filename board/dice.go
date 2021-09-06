@@ -16,6 +16,6 @@ func (d Dice) RollDice() int {
 	return val
 }
 
-func NewDice()Dice{
+func NewDice() Dice {
 	return Dice{}
 }

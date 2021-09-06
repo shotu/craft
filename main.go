@@ -12,6 +12,8 @@ func main() {
 	e.POST("/sl-game", handler.CreateBoard)
 	e.GET("/sl-game/:id", handler.GetBoard)
 
+	e.PUT("/sl-game/:board_id/players/:id", handler.RollDice)
+
 	e.Logger.Fatal(e.Start(":8080"))
 
 }

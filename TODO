@@ -34,4 +34,8 @@ if any move reaches the 100 declare the winner:
 
 
 
-
+ROLL DICE :
+roll dice, 
+    add to players curr pos ,
+    final postion: check if snake or ladder till there is none on 100, if not hundered return else return win, 
+    return updated board, and also return the happened event summary summary: 
