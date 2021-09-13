@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
+	"runtime"
+	"time"
 
 	"github.com/labstack/gommon/log"
 
@@ -37,7 +40,8 @@ func init() {
 		log.Fatal("Could not read dconfig : %v", err)
 	}
 
-	connectURI := fmt.Sprintf("mongodb://%s:%s", cfg.DBHost, cfg.DBPort) + "/?connect=direct"
+	// connectURI := fmt.Sprintf("mongodb://%s:%s", cfg.DBHost, cfg.DBPort) + "/?connect=direct"
+	connectURI := "mongodb+srv://scraper:eDwHXWgPhkf5zTdj@cluster0.zpwar.mongodb.net/craft?retryWrites=true&w=majority"
 
 	c, err := mongo.Connect(context.Background(), options.Client().ApplyURI(connectURI))
 	if err != nil {
@@ -71,6 +75,31 @@ func addCorrelationID(next echo.HandlerFunc) echo.HandlerFunc {
 
 }
 
+func printVar(p *int64) {
+	fmt.Printf("print x = %d.\n", *p)
+}
+
+func cpuIntensiveEP(c echo.Context) error {
+
+	runtime.GOMAXPROCS(1)
+
+	x := int64(0)
+	go cpuIntensiveTask(&x) // This should go into background
+	go printVar(&x)
+
+	// This won't get scheduled until everything has finished.
+	time.Sleep(1 * time.Nanosecond) // Wait for goroutines to finish
+
+	return c.JSON(http.StatusOK, "done cpu intensive work ")
+}
+
+func cpuIntensiveTask(p *int64) {
+	for i := int64(1); i <= 10000000; i++ {
+		*p = i
+	}
+	fmt.Println("Done intensive thing")
+}
+
 func main() {
 
 	port := os.Getenv("CRAFT_APP_PORT")
@@ -85,6 +114,8 @@ func main() {
 	h := handlers.ProductHandler{Col: col}
 	b := handlers.BoardHandler{Col: boardCol}
 	// api := e.Group("/api/v1", serverHeader)
+
+	e.GET("/", cpuIntensiveEP)
 
 	//APIs without DB(in memory Implementation)
 	e.POST("/api/v1/board", handlersv1.CreateBoard)

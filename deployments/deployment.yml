@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  labels: 
+    app: microsvc
+  name: microsvc
+spec:
+  replicas: 1
+  selector: 
+    matchLabels: 
+      app: microsvc
+  template: 
+    metadata: 
+      labels: 
+        app: microsvc
+    spec: 
+      containers: 
+        - name: microsvc
+          image: "atri/go-craft:latest"
+          imagePullPolicy: Always
+          ports: 
+            - 
+              containerPort: 8080
+          resources: 
+            requests: 
+              cpu: 125m
+              memory: 64Mi
+            limits: 
+              cpu: 250m
+              memory: 128Mi
+          # livenessProbe:           # To check the health of the Pod
+          #   httpGet:
+          #     path: /health
+          #     port: 8080
+          #     scheme: HTTP
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 15
+          #   timeoutSeconds: 5
+          # readinessProbe:          # To check if the Pod is ready to serve traffic or not
+          #   httpGet:
+          #     path: /readiness
+          #     port: 8080
+          #     scheme: HTTP
+          #   initialDelaySeconds: 5
+          #   timeoutSeconds: 1 

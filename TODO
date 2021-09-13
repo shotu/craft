@@ -45,5 +45,18 @@ roll dice,
 deployment:
 
 https://www.callicoder.com/deploy-containerized-go-app-kubernetes/
+https://searchitoperations.techtarget.com/tutorial/How-to-auto-scale-Kubernetes-pods-for-microservices
 
 docker build -t go-kubernetes .
+
+docker tag go-kubernetes atri/go-craft:1.0.0
+docker push atri/go-craft:1.0.0
+
+kubectl apply -f deployments/
+
+kubectl port-forward svc/microsvc 8080:8080
+
+
+kubectl autoscale deployment microsvc --cpu-percent=50 --min=1 --max=4
+
+kubectl run -i --tty load-generator --rm --image=busybox --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://microsvc/; done"

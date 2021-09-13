@@ -111,10 +111,10 @@ func (b *BoardHandler) GetBoard(c echo.Context) error {
 
 // ROLL DICE Handler
 func (b *BoardHandler) RollDice(c echo.Context) error {
-	// get the board from db, 
+	// get the board from db,
 	// rool the dice
-	// update the board 
-	return the board 
+	// update the board
+	// return the board
 
-	return c.JSON(http.StatusOK, board)
+	return c.JSON(http.StatusOK, "rolled")
 }
