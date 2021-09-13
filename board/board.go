@@ -2,7 +2,6 @@ package board
 
 import (
 	"fmt"
-	"time"
 )
 
 type Board interface {
@@ -87,7 +86,7 @@ func (b *BoardImpl) UpdatePlayerPostion(playerId int, newPos int) ([][]int, [][]
 					player.CurrentPosition = snakeEnd
 				}
 
-				time.Sleep(5 * time.Second)
+				// time.Sleep(5 * time.Second)
 
 				fmt.Println(" player.  CurrentPosition", player.CurrentPosition)
 

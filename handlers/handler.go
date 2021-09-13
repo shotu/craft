@@ -1,6 +1,7 @@
-package handler
+package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -21,6 +22,17 @@ import (
 var (
 	boards = map[int]*board.BoardImpl{}
 )
+
+type snakes struct {
+}
+
+type ladders struct{}
+
+type result struct {
+	Board   *board.BoardImpl `json:"board"`
+	Ladders [][]int          `json:"ladders"`
+	Snakes  [][]int          `json:"snakes"`
+}
 
 func CreateBoard(c echo.Context) error {
 
@@ -66,12 +78,24 @@ func RollDice(c echo.Context) error {
 
 	snakes, ladders, err := board.UpdatePlayerPostion(playerID, rolledDiceNumber)
 
+	fmt.Println("snakes..", snakes)
+	fmt.Println("ladders..", ladders)
+	result := result{
+		Board:   board,
+		Ladders: ladders,
+		Snakes:  snakes,
+	}
 	if err != nil {
 		fmt.Println("error in rolling dice", err)
-		return c.JSON(http.StatusBadRequest, board, snakes, ladders)
+		return c.JSON(http.StatusBadRequest, err)
 
 	} else {
-		fmt.Println("Updated board is", board)
-		return c.JSON(http.StatusOK, board, snakes, ladders)
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		c.Response().WriteHeader(http.StatusOK)
+		return json.NewEncoder(c.Response()).Encode(result)
+
 	}
+	// 	fmt.Println("Updated board is", result)      //
+	// 	return c.SetParamNames(http.StatusOK, board) //
+	// }
 }
