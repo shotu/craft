@@ -106,6 +106,5 @@ func (b *BoardImpl) UpdatePlayerPostion(playerId int, newPos int) ([][]int, [][]
 	}
 
 	fmt.Println("Completes update")
-
 	return snakes, ladders, nil
 }
