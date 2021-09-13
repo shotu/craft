@@ -2,7 +2,11 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/labstack/gommon/log"
 
@@ -55,11 +59,29 @@ func insertProducts(ctx context.Context, products []Product, collection dbiface.
 
 }
 
-func findProducts(ctx context.Context, collection dbiface.CollectionAPI) ([]Product, error) {
+func findProducts(ctx context.Context, q url.Values, collection dbiface.CollectionAPI) ([]Product, error) {
 	var products []Product
-	cursor, err := collection.Find(ctx, bson.M{})
+
+	filter := make(map[string]interface{})
+
+	for k, v := range q {
+		filter[k] = v[0]
+	}
+
+	if filter["_id"] != "" {
+		docID, err := primitive.ObjectIDFromHex(filter["_id"].(string))
+		if err != nil {
+			return products, err
+		}
+		filter["_id"] = docID
+
+	}
+	// cursor, err := collection.Find(ctx, bson.M{})
+	cursor, err := collection.Find(ctx, bson.M(filter))
+
 	if err != nil {
 		log.Errorf("Unable to get products: %v", err)
+		return products, err
 	}
 
 	curerr := cursor.All(ctx, &products)
@@ -71,10 +93,52 @@ func findProducts(ctx context.Context, collection dbiface.CollectionAPI) ([]Prod
 
 }
 
+func modifyProduct(ctx context.Context, id string, reqBody io.ReadCloser, collection dbiface.CollectionAPI) (Product, error) {
+	var product Product
+	// find if product exists, if err return 404
+	docID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("cannot convert to objectid: %v", err)
+		return product, err
+	}
+	filter := bson.M{"_id": docID}
+
+	res := collection.FindOne(ctx, filter)
+	if err := res.Decode(&product); err != nil {
+
+		log.Errorf("unable to  decode product: %v", err)
+		return product, err
+	}
+
+	//decode the req payload, if return 500
+	decodeError := json.NewDecoder(reqBody).Decode(&product)
+	if err != nil {
+		return product, decodeError
+	}
+
+	//validate the req, if err return 400
+
+	if err := v.Struct(product); err != nil {
+		return product, echo.NewHTTPError(500, "unable to decode")
+	}
+
+	// update the product
+	_, err = collection.UpdateOne(ctx, filter, bson.M{"$set": product})
+	if err != nil {
+		return product, err
+	}
+
+	return product, nil
+
+}
+
 // create tthe products in mongodb
 func (h *ProductHandler) CreateProducts(c echo.Context) error {
 
 	var products []Product
+
+	fmt.Println("product is ", products)
+
 	c.Echo().Validator = &ProductValidator{validator: v}
 	for _, product := range products {
 		err := c.Validate(product)
@@ -89,6 +153,8 @@ func (h *ProductHandler) CreateProducts(c echo.Context) error {
 		return err
 	}
 
+	fmt.Println("product are ", products)
+
 	IDs, err := insertProducts(context.Background(), products, h.Col)
 	if err != nil {
 		return err
@@ -99,9 +165,20 @@ func (h *ProductHandler) CreateProducts(c echo.Context) error {
 // Gets list of products
 func (h *ProductHandler) GetProducts(c echo.Context) error {
 
-	products, err := findProducts(context.Background(), h.Col)
+	products, err := findProducts(context.Background(), c.QueryParams(), h.Col)
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, products)
+}
+
+func (h *ProductHandler) UpdateProduct(c echo.Context) error {
+
+	product, err := modifyProduct(context.Background(), c.Param("id"), c.Request().Body, h.Col)
+
+	if err != nil {
+		log.Errorf("unable to bind the product: %v", err)
+		return err
+	}
+	return c.JSON(http.StatusOK, product)
 }

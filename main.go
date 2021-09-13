@@ -7,14 +7,13 @@ import (
 
 	"github.com/labstack/gommon/log"
 
-	// "github.com/docker/distribution/registry/handlers"
-
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/random"
 	"github.com/shotu/craft/config"
 	handlers "github.com/shotu/craft/handlers"
+	handlersv1 "github.com/shotu/craft/handlersv1"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -25,10 +24,11 @@ const (
 
 // can be used in integration testing
 var (
-	c   *mongo.Client
-	db  *mongo.Database
-	col *mongo.Collection
-	cfg config.Properties
+	c        *mongo.Client
+	db       *mongo.Database
+	col      *mongo.Collection
+	boardCol *mongo.Collection
+	cfg      config.Properties
 )
 
 func init() {
@@ -46,7 +46,8 @@ func init() {
 	fmt.Println("Successfully connected to mongodb")
 	db = c.Database(cfg.DBName)
 	col = db.Collection(cfg.CollectionName)
-	// col.Find()
+	boardCol = db.Collection(cfg.BoardCollectionName)
+	// col.UpdateOne()
 }
 
 func addCorrelationID(next echo.HandlerFunc) echo.HandlerFunc {
@@ -82,16 +83,25 @@ func main() {
 	// adding correlation id[tracing accross microservices ]
 	e.Pre(addCorrelationID)
 	h := handlers.ProductHandler{Col: col}
+	b := handlers.BoardHandler{Col: boardCol}
 	// api := e.Group("/api/v1", serverHeader)
 
-	//TODO add api groups and versions
-	e.POST("/sl-game", handlers.CreateBoard)
-	e.GET("/sl-game/:id", handlers.GetBoard)
+	//APIs without DB(in memory Implementation)
+	e.POST("/api/v1/board", handlersv1.CreateBoard)
+	e.GET("/api/v1/board/:id", handlersv1.GetBoard)
+	e.PUT("/api/v1/board/:board_id/players/:id", handlersv1.RollDice)
 
-	e.PUT("/sl-game/:board_id/players/:id", handlers.RollDice)
+	//APIs with DB(mongodb as persistent storage Implementation)
+	e.POST("/api/v2/boards", b.CreateBoard)
+	e.GET("/api/v2/boards/:id", b.GetBoard)
+	e.PUT("/api/v2/boards/:board_id/players/:id", b.RollDice)
+
+	// e.GET("/api/v2/board/:id", handlers.GetBoard)
+	// e.PUT("/api/v2/board/:board_id/players/:id", handlers.RollDice)
 
 	e.POST("/products", h.CreateProducts, middleware.BodyLimit("1M"))
 	e.GET("/products", h.GetProducts)
+	e.PUT("/products/:id", h.UpdateProduct, middleware.BodyLimit("1M"))
 
 	e.Logger.Infof("Listening on the port %s:%s", cfg.Host, cfg.Port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)))
