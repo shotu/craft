@@ -1,7 +1,7 @@
 # Dockerfile References: https://docs.docker.com/engine/reference/builder/
 
 # Start from the latest golang base image
-FROM golang:latest as builder
+FROM golang:alpine as builder
 
 # Add Maintainer Info
 LABEL maintainer="manish <atri.manish.iiita@gmail.com>"
@@ -23,17 +23,18 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 
 ######## Start a new stage from scratch #######
-FROM alpine:latest  
+FROM scratch
 
-RUN apk --no-cache add ca-certificates
-
+ENV SENDER_EMAIL=myemail@gmail.com
+ENV PASSWORD=mypass
+ENV RECEIVER_EMAIL=recieveremail@gmail.com
 WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
 
-# Expose port 8080 to the outside world
-EXPOSE 8080
+# Expose port 31000 to the outside world
+EXPOSE 31000
 
 # Command to run the executable
 CMD ["./main"] 

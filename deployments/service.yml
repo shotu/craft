@@ -6,6 +6,6 @@ metadata:
     app: microsvc
 spec:
   ports:
-  - port: 8080
+  - port: 31000
   selector:
     app: microsvc

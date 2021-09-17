@@ -47,7 +47,11 @@ deployment:
 https://www.callicoder.com/deploy-containerized-go-app-kubernetes/
 https://searchitoperations.techtarget.com/tutorial/How-to-auto-scale-Kubernetes-pods-for-microservices
 
-docker build -t go-kubernetes .
+docker build -t test .
+
+docker run --publish 31000:31000 test
+
+docker run -d -p 8000:8000 test
 
 docker tag go-kubernetes atri/go-craft:1.0.0
 docker push atri/go-craft:1.0.0
@@ -56,7 +60,35 @@ kubectl apply -f deployments/
 
 kubectl port-forward svc/microsvc 8080:8080
 
+kubectl port-forward svc/myhelm-testcharts 31000:31000
 
-kubectl autoscale deployment microsvc --cpu-percent=50 --min=1 --max=4
 
-kubectl run -i --tty load-generator --rm --image=busybox --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://microsvc/; done"
+minikube addons enable metrics-server
+
+
+# helm install --dry-run --debug ./mychart --set service.internalPort=8080
+
+ helm create testcharts
+
+cd testcharts/
+
+
+/usr/local/bin/helm install  myhelm  .  --set config.SENDER_EMAIL=atri.manish.iiita@gmail.com --debug 
+
+kubectl get pods, 
+kubectl get services 
+
+kubectl port-forward svc/myhelm-testcharts 31000:31000
+
+
+
+
+
+
+
+
+kubectl autoscale deployment microsvc --cpu-percent=1 --min=1 --max=4
+
+kubectl run -i --tty load-generator --rm --image=busybox --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://localhost:8080; done"
+
+kubectl run — generator=run-pod/v1 -it — rm load-generator — image=busybox /bin/sh while true; do wget -q -O- http://localhost:8080; done

@@ -8,6 +8,16 @@ type Board interface {
 	NewBoard()
 }
 
+//
+
+// landingPage
+
+//   [StartnewGame]
+//      [Customize game , start]
+// 	    [visual board, Rll the dice [player] ]
+
+//   PreviousGames
+
 type BoardImpl struct {
 	Dice    Dice      `json:"dice"`
 	Snakes  Snakes    `json:"snakes"`
